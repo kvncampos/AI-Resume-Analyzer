@@ -1,5 +1,7 @@
 site_name: AI Resume Analyzer
-site_url: https://localhost:8000
+repo_name: kvncampos/AI-Resume-Analyzer
+docs_dir: docs/
+site_author: Kevin Campos
 site_description: An overview and documentation of the AI Resume Analyzer project
 theme:
   name: material
@@ -12,7 +14,33 @@ nav:
   - Project Details:
       - What I Learned: what-i-learned.md
       - Reason for This Project: reason-for-project.md
+      - LLM Overview: llm_overview.md
   - About: about.md
 markdown_extensions:
   - toc:
       permalink: true
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - def_list
+  - admonition
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
