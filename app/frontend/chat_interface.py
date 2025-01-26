@@ -1,4 +1,6 @@
 import streamlit as st
+
+from .prompts import CHAT_PROMPTS
 from backend.analysis import llm
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -6,6 +8,9 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
+
+# Used to Specify the Prompt Selection to use
+PROMPT_SELECTION = "CUSTOM_1"
 
 
 # Chat interface section of the application - displayed at the right
@@ -19,13 +24,15 @@ def render_chat_interface():
         .stChatInput {
             position: fixed;
             bottom: 0;
-            padding: 1rem;
-            background-color: white;
+            padding-bottom: 10px;
+            padding-top: 10px;
             z-index: 1000;
         }
         .stChatFloatingInputContainer {
-            margin-bottom: 20px;
+            margin-bottom: 1000px;
+            background-color: pink;
         }
+        <div style='height: 100px;'></div>
         </style>
     """,
         unsafe_allow_html=True,
@@ -46,13 +53,9 @@ def render_chat_interface():
         )
 
         # Chat logic setup for contextualizing user questions
-        contextualize_q_system_prompt = (
-            "Given a chat history and the latest user question "
-            "which might reference context in the chat history, "
-            "formulate a standalone question which can be understood "
-            "without the chat history. Do NOT answer the question, "
-            "just reformulate it if needed and otherwise return it as is."
-        )
+        contextualize_q_system_prompt = CHAT_PROMPTS[PROMPT_SELECTION][
+            "Q_SYSTEM_PROMPT"
+        ]
 
         # Creating a prompt template for contextualizing questions
         contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -69,15 +72,7 @@ def render_chat_interface():
         )
 
         # System prompt for answering questions
-        system_prompt = (
-            "You are an assistant for question-answering tasks. "
-            "Use the following pieces of retrieved context to answer "
-            "the question. If you don't know the answer, say that you "
-            "don't know. Use three sentences maximum and keep the "
-            "answer concise."
-            "\n\n"
-            "{context}"
-        )
+        system_prompt = CHAT_PROMPTS[PROMPT_SELECTION]["SYSTEM_PROMPT"]
 
         # Creating a prompt template for question-answering
         qa_prompt = ChatPromptTemplate.from_messages(
@@ -115,9 +110,6 @@ def render_chat_interface():
 
         # Create a container for messages with bottom padding for input space
         chat_container = st.container()
-
-        # Add space at the bottom to prevent messages from being hidden behind input
-        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
 
         # Input box - will be fixed at bottom due to CSS
         prompt = st.chat_input("Ask about the resume")  # Input for user queries

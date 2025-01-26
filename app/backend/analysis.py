@@ -1,66 +1,104 @@
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
+import os
+from .templates import OLLAMA_TEMPLATES
 
-# Set up Groq API key
-load_dotenv()  # Load environment variables from .env file
+# Load environment variables from .env file
+load_dotenv()
 
-# # ------------------------------------
-# # KEEP THIS IF USING GROQ API
-# # ------------------------------------
-# from langchain_groq import ChatGroq
-# os.environ["GROQ_API_KEY"] = os.getenv(
-#     "GROQ_API_KEY"
-# )  # Set the Groq API key from environment variables
+LLM_MODEL = os.environ.get("OLLAMA_MODEL", default="llama3.2:latest")
 
-# # Initialize the ChatGroq model with the specified model name
 # Initialize the Ollama LLM
 llm = OllamaLLM(
-    model="llama3.2",
-    temperature=0.3,  # Lower value for more deterministic responses
-    top_p=0.9,  # Restrict randomness to the top 90% probability mass
-    top_k=40,  # Consider top 40 options during generation
+    model=LLM_MODEL,
 )
 
 
-def analyze_resume(full_resume, job_description):
-    # Template for analyzing the resume against the job description
-    template = """
-    You are an AI assistant specialized in resume analysis and recruitment. Analyze the given resume and compare it with the job description.
-
-    Respond in the following structure:
-
-    **OVERVIEW**:
-    - **Match Percentage**: [Provide a percentage value.]
-    - **Matched Skills**: [List of skills that match the job description.]
-    - **Unmatched Skills**: [List of skills missing from the job description.]
-
-    **DETAILED ANALYSIS**:
-    1. Match Percentage: Explain how you calculated the match percentage.
-    2. Matched Skills: Provide a detailed explanation of why these skills match.
-    3. Unmatched Skills: Explain why these skills are missing.
-
-    **Additional Comments**:
-    Include actionable recommendations for the recruiter or HR manager.
-
-    Resume:
-    {resume}
-
-    Job Description:
-    {job_description}
-
-    ### Analysis:
+def invoke_llm(template_name: str, inputs: dict) -> str:
     """
+    Helper function to invoke the Ollama LLM with a given template and inputs.
 
-    prompt = PromptTemplate(  # Create a prompt template with input variables
-        input_variables=["resume", "job_description"], template=template
+    Args:
+        template_name (str): The name of the template in OLLAMA_TEMPLATES.
+        inputs (dict): The input variables for the template.
+
+    Returns:
+        str: The response from the LLM.
+
+    Raises:
+        ValueError: If the template name is invalid or inputs are empty.
+    """
+    # Ensure the template name exists
+    if template_name not in OLLAMA_TEMPLATES:
+        raise ValueError(f"Invalid template name: {template_name}")
+
+    # Get the template
+    template = OLLAMA_TEMPLATES[template_name]
+
+    # Initialize the prompt template
+    prompt = PromptTemplate(
+        input_variables=list(inputs.keys()),
+        template=template,
+        validate_template=True,
     )
 
-    # Create a chain combining the prompt and the language model
+    # Combine the prompt with the language model
     chain = prompt | llm
 
-    # Invoke the chain with input data
-    response = chain.invoke({"resume": full_resume, "job_description": job_description})
+    # Invoke the chain with the provided inputs
+    response = chain.invoke(inputs)
 
     # Return the content of the response
-    return response
+    return response.strip()
+
+
+def analyze_job_description(job_description: str) -> bool:
+    """
+    Verifies the validity of a job description using Ollama LLM.
+
+    Args:
+        job_description (str): The full text of the job description.
+
+    Returns:
+        bool: True if the job description is valid, False otherwise.
+
+    Raises:
+        ValueError: If the job description is empty.
+    """
+    if not job_description.strip():
+        raise ValueError("Job description must be non-empty")
+
+    # Invoke the LLM with the job description validation template
+    response = invoke_llm("JOB_DESCRIPTION", {"job_description": job_description})
+
+    response = response.strip().capitalize()
+
+    # Ensure the response is either "True" or "False"
+    if response not in ["True", "False"]:
+        raise RuntimeError(f"Unexpected response from LLM: {response}")
+
+    return response == "True"
+
+
+def analyze_resume(full_resume: str, job_description: str) -> str:
+    """
+    Analyzes a resume against a job description using Ollama LLM.
+
+    Args:
+        full_resume (str): The full text of the resume.
+        job_description (str): The full text of the job description.
+
+    Returns:
+        str: The response from the Ollama LLM analysis.
+
+    Raises:
+        ValueError: If either the resume or job description is empty.
+    """
+    if not full_resume.strip() or not job_description.strip():
+        raise ValueError("Both resume and job description must be non-empty")
+
+    # Invoke the LLM with the resume analysis template
+    return invoke_llm(
+        "RESUME_ANALYSIS", {"resume": full_resume, "job_description": job_description}
+    )

@@ -1,0 +1,18 @@
+site_name: AI Resume Analyzer
+site_url: https://localhost:8000
+site_description: An overview and documentation of the AI Resume Analyzer project
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+nav:
+  - Home: index.md
+  - Project Details:
+      - What I Learned: what-i-learned.md
+      - Reason for This Project: reason-for-project.md
+  - About: about.md
+markdown_extensions:
+  - toc:
+      permalink: true

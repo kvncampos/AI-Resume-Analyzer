@@ -1,14 +1,95 @@
 import streamlit as st
 from backend.pdf_ingestion import load_split_pdf
 from backend.vector_store import create_vector_store
-from backend.analysis import analyze_resume
+from backend.analysis import analyze_resume, analyze_job_description
 import os
 import shutil
+
+ERROR_ICON = ":material/notification_important:"
+
+
+def handle_resume_analysis(resume_docs, job_description):
+    """
+    Handles the resume analysis process by first validating the job description
+    and then analyzing the resume if the job description is valid.
+
+    Args:
+        resume_docs (list): List of parsed resume document objects.
+        job_description (str): The job description to validate.
+
+    Returns:
+        None
+    """
+
+    def _process_resume(resume_docs):
+        """
+        Combines the content of parsed resume documents into a single text string.
+
+        Args:
+            resume_docs (list): List of parsed resume document objects.
+
+        Returns:
+            str: Combined resume text.
+        """
+        return " ".join(doc.page_content for doc in resume_docs)
+
+    # Step 1: Validate the job description
+    try:
+        if not analyze_job_description(job_description):
+            st.error(
+                "The job description is invalid. Please provide a valid description.\n\n**It Must Contain**: \n\n1. Valid Job Role\n\n2. Job Requirements",
+                icon=ERROR_ICON,
+            )
+            return
+    except Exception as e:
+        st.error(
+            f"An error occurred during job description analysis: {str(e)}",
+            icon=ERROR_ICON,
+        )
+        return
+
+    # Step 2: Combine all document contents into one text string
+    try:
+        full_resume = _process_resume(resume_docs)
+    except Exception as e:
+        st.error(
+            f"An error occurred while processing the resume: {str(e)}", icon=ERROR_ICON
+        )
+        return
+
+    # Step 3: Analyze the resume
+    try:
+        analysis = analyze_resume(full_resume, job_description)
+        st.session_state.analysis = analysis
+        st.success("Resume analysis completed successfully!")
+    except Exception as e:
+        st.error(f"An error occurred during resume analysis: {str(e)}", icon=ERROR_ICON)
+
+
+def validate_inputs(resume_file, job_description):
+    """
+    Validates the inputs for the resume and job description analysis.
+
+    Args:
+        resume_file (file): Uploaded resume file.
+        job_description (str): The job description text.
+
+    Returns:
+        bool: True if inputs are valid, False otherwise.
+    """
+    if not resume_file:
+        st.error("Please upload your resume in PDF format.", icon=ERROR_ICON)
+        return False
+    if len(job_description) < 100:
+        st.error(
+            "Job description must be at least 100 characters long.", icon=ERROR_ICON
+        )
+        return False
+    return True
 
 
 # Main application including "Upload Resume" and "Resume Analysis" sections
 def render_main_app():
-
     # Apply custom CSS to adjust the sidebar width
     st.markdown(
         """
@@ -32,7 +113,8 @@ def render_main_app():
         # Text area for job description input
         job_description = st.text_area("Enter Job Description", height=300)
 
-        if resume_file and job_description:  # Check if both inputs are provided
+        # Check if both inputs are provided
+        if resume_file and job_description:
             # Create a temporary directory if it doesn't exist
             temp_dir = "temp"
             os.makedirs(temp_dir, exist_ok=True)
@@ -54,16 +136,14 @@ def render_main_app():
             # Remove the temporary directory and its contents
             shutil.rmtree(temp_dir)
 
-            # Button to begin resume analysis
+            # Button to trigger resume analysis
             if st.button("Analyze Resume", help="Click to analyze the resume"):
-                # Combine all document contents into one text string for analysis
-                full_resume = " ".join([doc.page_content for doc in resume_docs])
-                # Analyze the resume
-                analysis = analyze_resume(full_resume, job_description)
-                # Store analysis in session state
-                st.session_state.analysis = analysis
-        else:
-            st.info("Please upload a resume and enter a job description to begin.")
+                # Step 1: Validate inputs
+                if not validate_inputs(resume_file, job_description):
+                    return  # Exit early if inputs are invalid
+
+                # Step 2: Proceed to handle resume analysis
+                handle_resume_analysis(resume_docs, job_description)
 
     # Display the analysis result if it exists in session state
     if "analysis" in st.session_state:

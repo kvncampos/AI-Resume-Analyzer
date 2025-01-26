@@ -1,0 +1,20 @@
+services:
+  ai-resume-analyzer:
+    build:
+      context: .
+    container_name: ai-resume-analyzer
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+  ai-resume-analyzer-docs:
+    image: squidfunk/mkdocs-material:latest
+    container_name: ai-resume-analyzer-docs
+    volumes:
+      - ./docs:/docs
+    ports:
+      - "8000:8000"
+    command: ["uv", "run", "mkdocs", "serve", "-a", "0.0.0.0:8000"]
