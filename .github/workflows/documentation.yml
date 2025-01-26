@@ -20,12 +20,7 @@
 
           - name: Install UV
             run: |
-              curl -sSL https://install.python-poetry.org | python3 -
-              mv ~/.local/bin/uv /usr/local/bin/uv
-
-          - name: Install dependencies
-            run: |
-              uv install
+              curl -LsSf https://astral.sh/uv/install.sh | sh
 
           - name: Deploy to GitHub Pages
             env:
