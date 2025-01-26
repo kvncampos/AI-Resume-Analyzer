@@ -48,3 +48,12 @@ def destroy(c):
     c.run("docker compose down -v --remove-orphans")
     print("Removing unused volumes...")
     c.run("docker volume prune -f")
+
+
+@task
+def serve_docs(c):
+    """
+    Start the MKDocs.
+    """
+    print("Starting Local MKDocs...")
+    c.run("mkdocs serve -f mkdocs/mkdocs.yml")

@@ -17,4 +17,4 @@ services:
       - ./docs:/docs
     ports:
       - "8000:8000"
-    command: ["uv", "run", "mkdocs", "serve", "-a", "0.0.0.0:8000"]
+    command: ["mkdocs", "serve"]

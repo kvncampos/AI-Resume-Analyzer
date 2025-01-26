@@ -7,7 +7,7 @@ Welcome to the documentation for the **AI Resume Analyzer** project! This projec
 
 Here's an overview of the infrastructure:
 
-![High-Level Design Overview](assets/diagram.png){ loading=lazy }
+![High-Level Design Overview](images/diagram.png){ loading=lazy }
 /// caption
 AI-Resume Analyzer Design
 ///
