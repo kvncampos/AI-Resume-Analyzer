@@ -11,10 +11,12 @@ theme:
     - content.code.annotate
 nav:
   - Home: index.md
+  - Getting Started: getting_started.md
   - Project Details:
       - What I Learned: what-i-learned.md
       - Reason for This Project: reason-for-project.md
       - LLM Overview: llm_overview.md
+  - Resources: resources.md
   - About: about.md
 markdown_extensions:
   - toc:

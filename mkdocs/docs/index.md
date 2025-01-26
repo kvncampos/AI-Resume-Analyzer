@@ -30,7 +30,9 @@ This project leverages:
 
 1. [What I Learned](what-i-learned.md)
 2. [Reason for This Project](reason-for-project.md)
-3. [About Me](about.md)
+3. [LLM Overview](llm_overview.md)
+4. [About Me](about.md)
+5. [Resources](resources.md)
 
 
 Click the links above to explore more about this project and its journey!

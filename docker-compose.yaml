@@ -14,7 +14,9 @@ services:
     image: squidfunk/mkdocs-material:latest
     container_name: ai-resume-analyzer-docs
     volumes:
-      - ./docs:/docs
+      - ./mkdocs:/docs
     ports:
       - "8000:8000"
-    command: ["mkdocs", "serve"]
+networks:
+  resume_analyzer:
+    name: resume_analyzer
